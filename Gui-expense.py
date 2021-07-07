@@ -7,7 +7,20 @@ import csv
 
 GUI = Tk()
 GUI.title('โปรแกรมบันทึกค่าใช้จ่าย by Uncle Engineer')
-GUI.geometry('720x700+500+50')
+##GUI.geometry('720x700+500+50')
+
+w = 720
+h = 600
+
+ws = GUI.winfo_screenwidth() #screen width
+hs = GUI.winfo_screenheight() #screen height
+
+
+x = (ws/2) - (w/2)
+y = (hs/2) - (h/2)
+
+GUI.geometry(f'{w}x{h}+{x:.0f}+{y:.0f}')
+
 
 
 # B1 = Button(GUI,text='Hello')
@@ -24,14 +37,15 @@ filemenu.add_command(label='Import CSV')
 filemenu.add_command(label='Export to Googlesheet')
 # help
 def About():
+	print('About Menu')
 	messagebox.showinfo('About','สวัสดีครับ โปรแกรมนี้คือโปรแกรมบันทึกข้อมูล\nสนใจบริจาคเราไหม? ที่พร้อมเพย์ 0970726419' )
 
-helpmenu = Menu(menubar)
+helpmenu = Menu(menubar,tearoff=0)
 menubar.add_cascade(label='Help',menu=helpmenu)
 helpmenu.add_command(label='About',command=About)
 
 # Donate
-donatemenu = Menu(menubar)
+donatemenu = Menu(menubar,tearoff=0)
 menubar.add_cascade(label='Donate',menu=donatemenu)
 
 ###################
@@ -63,8 +77,8 @@ def Save(event=None):
 	price = v_price.get()
 	quantity = v_quantity.get()
 
-	if expense == ''  :
-		print('No Data')
+	if expense == '':
+		#print('No Data')
 		messagebox.showwarning('Error','กรุณากรอกข้อมูลค่าใช้จ่าย')
 		return
 	elif price == '':
@@ -73,15 +87,14 @@ def Save(event=None):
 	elif quantity == '':
 		quantity = 1  #ให้defaultจำนวนเป็น 1
 
+	total = float(price) * float(quantity)
 	try:
 		total =  float(price)*float(quantity)
-		
 		# .get() คือดึงค่ามาจาก v_expense = StringVar()
 		print('รายการ: {} ราคา: {} จำนวน: {} รวมทั้งหมด: {}'.format(expense,price,quantity,total))
 		text = 'รายการ: {} ราคา: {}\n'.format(expense,price)
-		text2 = text + 'จำนวน: {} รวมทั้งหมด: {}'.format(quantity,total)
-		v_result.set(text2)
-		
+		text = text + 'จำนวน: {} รวมทั้งหมด: {}'.format(quantity,total)
+		v_result.set(text)
 		# clear ข้อมูลเก่า
 		v_expense.set('')
 		v_price.set('')
@@ -89,30 +102,32 @@ def Save(event=None):
 
 		# บันทึกข้อมูลลง csv อย่าลืม import csv ด้วย
 		today = datetime.now().strftime('%a') # days['Mon'] = 'จันทร์'
-		print(today)
+		#print(today)
 		stamp = datetime.now()
 		dt = stamp .strftime('%Y-%m-%d-%H:%M:%S')
 		transactionid = stamp.strftime('%Y%m%d%H%M%f')
 		dt = days[today] + '-' + dt
+		
 		with open('savedata.csv','a',encoding='utf-8',newline='') as f:
 			# with คือสั่งเปิดไฟล์แล้วปิดอัตโนมัติ
 			# 'a' การบันทึกเรื่อยๆ เพิ่มข้อมูลต่อจากข้อมูลเก่า
 			# newline='' ทำให้ข้อมูลไม่มีบรรทัดว่าง
 			fw = csv.writer(f) #สร้างฟังชั่นสำหรับเขียนข้อมูล
-			data = [transactionid,dt, expense,price,quantity,total]
+			data = [transactionid,dt,expense,price,quantity,total]
 			fw.writerow(data)
 
 		# ทำให้เคอเซอร์กลับไปตำแหน่งช่องกรอก E1
 		E1.focus()
 		update_table()
-
 	except Exception as e: #เพื่อให้เตือนว่าไม่สามารถบันทึกได้เมื่อเปิดไฟล์.csvไว้
 
 		print('ERROR:',e)
 		messagebox.showinfo('Error','กรุณากรอกข้อมูลใหม่ คุณกรอกตัวเลขผิด')
 		#messagebox.showwarning('Error','กรุณากรอกข้อมูลใหม่ คุณกรอกตัวเลขผิด')
 		#messagebox.showerror('Error','กรุณากรอกข้อมูลใหม่ คุณกรอกตัวเลขผิด')
-
+		v_expense.set()
+		v_price.set()
+		v_quantity.set()
 # ทำให้สามารถกด enter ได้
 GUI.bind('<Return>',Save) #ต้องเพิ่มใน def Save(event=None) ด้วย
 
@@ -149,12 +164,12 @@ E3.pack()
 icon_b1 = PhotoImage(file='b1_expensesave.png')
 
 B2 = ttk.Button(F1,text=f'{"Save":>{10}}',image = icon_b1,compound ='left' ,command=Save)
-B2.pack(ipadx=10,ipady=10)
+B2.pack(ipadx=50,ipady=20,pady=20)
 
 v_result = StringVar()
 v_result.set('--------ผลลัพธ์-------')
 result = ttk.Label(F1, textvariable=v_result,font=FONT1)
-result.pack(pady=5)
+result.pack(pady=20)
 ########################TAB2######################
 
 def read_csv():
@@ -188,13 +203,13 @@ for h,w in zip(header, headerwidth):
 
 #resulttable.insert('',0,value=['จันทร์','น้ำดื่ม',30,5,150])
 #resulttable.insert('','end',value=['อังคาร','น้ำดื่ม',30,5,150])
-alltransection = {}
+alltransaction = {}
 
 def updateCSV():
 	with open('savedata.csv','w',newline='',encoding='utf-8') as f: 
 		fw = csv.writer(f)
 		#เตรียมข้อมูลให้กลายเป็น list
-		data = list(alltransection.values())
+		data = list(alltransaction.values())
 		fw.writerows(data) # multiple line from nested list [],[],[]
 		print('Table was upated')
 		
@@ -203,15 +218,15 @@ def DeleteRecord(event=None):
 	print('YES/NO:',check)
 
 	if check == True:
-		print('delete')
+		#print('delete')
 		select = resulttable.selection()
-		print(select)
+		#print(select)
 		data = resulttable.item(select)
 		data = data['values']
-		transectionid = data[0]
-		print(transectionid)
-		del alltransection[str(transectionid)] #delete data in dict
-		print(alltransection)
+		transactionid = data[0]
+		#print(transactionid)
+		del alltransaction[str(transactionid)] #delete data in dict
+		#print(alltransaction)
 		updateCSV()
 		update_table()
 	else:
@@ -231,15 +246,102 @@ def update_table():
 		data = read_csv()
 		for d in data:
 			#create transaction data
-			alltransection[d[0]] = d  #d[0] = transectionid
+			alltransaction[d[0]] = d  #d[0] = transactionid
 			resulttable.insert('',0,values=d)
-		print(alltransection)
+		print(alltransaction)
 	except Exception as e:
 		print('No File')
 		print('ERROR:',e)
 
+#########Rightclickmenu###########
+def EditRecord():
+	POPUP = Toplevel()
+	POPUP.title('Edit Record')
+	#POPUP.geometry('500x400')
+	w = 500
+	h = 400
+
+	ws = GUI.winfo_screenwidth() #screen width
+	hs = GUI.winfo_screenheight() #screen height
+
+
+	x = (ws/2) - (w/2)
+	y = (hs/2) - (h/2)
+
+	POPUP.geometry(f'{w}x{h}+{x:.0f}+{y:.0f}')
+
+
+	#------text1--------
+	L = ttk.Label(POPUP,text='รายการค่าใช้จ่าย',font=FONT1).pack()
+	v_expense = StringVar()
+	# StringVar() คือ ตัวแปรพิเศษสำหรับเก็บข้อมูลใน GUI
+	E1 = ttk.Entry(POPUP,textvariable=v_expense,font=FONT1)
+	E1.pack()
+	#-------------------
+	#------text2--------
+	L = ttk.Label(POPUP,text='ราคา (บาท)',font=FONT1).pack()
+	v_price = StringVar()
+	# StringVar() คือ ตัวแปรพิเศษสำหรับเก็บข้อมูลใน GUI
+	E2 = ttk.Entry(POPUP,textvariable=v_price,font=FONT1)
+	E2.pack()
+	#-------------------
+	#------text3--------
+	L = ttk.Label(POPUP,text='จำนวน (ชิ้น)',font=FONT1).pack()
+	v_quantity = StringVar()
+	# StringVar() คือ ตัวแปรพิเศษสำหรับเก็บข้อมูลใน GUI
+	E3 = ttk.Entry(POPUP,textvariable=v_quantity,font=FONT1)
+	E3.pack()
+	#-------------------
+
+	def Edit():
+		print(transactionid)
+		print(alltransaction)
+		olddata = alltransaction[str(transactionid)]
+		print('OLD',olddata)
+		v1 = v_expense.get()
+		v2 = float(v_price.get())
+		v3 = float(v_quantity.get())
+		total = v2 * v3
+		newdata = [olddata[0],olddata[1],v1,v2,v3,total]
+		alltransaction[str(transactionid)] = newdata
+		updateCSV()
+		update_table()
+		POPUP.destroy() #สั่งปิด POPUP
+
+	icon_b1 = PhotoImage(file='b1_expensesave.png')
+
+	B2 = ttk.Button(POPUP,text=f'{"Save":>{10}}',image = icon_b1,compound ='left' ,command=Edit)
+	B2.pack(ipadx=50,ipady=20,pady=20)	
+
+	#get data in selected record
+	select = resulttable.selection()
+	print(select)
+	data = resulttable.item(select)
+	data = data['values']
+	print(data)
+	transactionid = data[0]
+	
+	# สั่งเซ็ตค่าเกด่าไว้ตรงช่องกรอก
+	v_expense.set(data[2])
+	v_price.set(data[3])
+	v_quantity.set(data[4])
+
+	POPUP.mainloop()
+
+
+rightclick = Menu(GUI,tearoff=0)
+rightclick.add_command(label='Edit',command=EditRecord)
+rightclick.add_command(label='Delete',command=DeleteRecord)
+
+
+def menupopup(event):
+	#print(event.x_root, event.y_root)
+	rightclick.post(event.x_root,event.y_root)
+
+resulttable.bind('<Button-3>',menupopup) #หากมีการคลิกขวาที่resulttableจะเปิดหน้าpopup
+
 update_table()
-print('GET CHILD:',resulttable.get_children())
+#print('GET CHILD:',resulttable.get_children())
 GUI.bind('<Tab>',lambda x: E2.focus())
 GUI.mainloop()
 
